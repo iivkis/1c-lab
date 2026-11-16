@@ -17,6 +17,26 @@
  <dcsset:name>Основной</dcsset:name><dcsset:presentation xsi:type="v8:LocalStringType"><v8:item><v8:lang>ru</v8:lang><v8:content>Поступления от поставщиков</v8:content></v8:item></dcsset:presentation>
  <dcsset:settings>
   <dcsset:selection><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Поставщик</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Товар</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Количество</dcsset:field></dcsset:item></dcsset:selection>
+  <dcsset:dataParameters>
+<dcscor:item xsi:type="dcsset:SettingsParameterValue">
+<dcscor:parameter>НачалоПериода</dcscor:parameter>
+<dcscor:value xsi:type="xs:dateTime">2020-01-01T00:00:00</dcscor:value>
+<dcsset:viewMode>QuickAccess</dcsset:viewMode>
+<dcsset:userSettingID>41f20000-0000-4000-8000-000000000004</dcsset:userSettingID>
+</dcscor:item>
+<dcscor:item xsi:type="dcsset:SettingsParameterValue">
+<dcscor:parameter>КонецПериода</dcscor:parameter>
+<dcscor:value xsi:type="xs:dateTime">2099-12-31T23:59:59</dcscor:value>
+<dcsset:viewMode>QuickAccess</dcsset:viewMode>
+<dcsset:userSettingID>41f20000-0000-4000-8000-000000000005</dcsset:userSettingID>
+</dcscor:item>
+<dcscor:item xsi:type="dcsset:SettingsParameterValue">
+<dcscor:parameter>Склад</dcscor:parameter>
+<dcscor:value xsi:nil="true"/>
+<dcsset:viewMode>QuickAccess</dcsset:viewMode>
+<dcsset:userSettingID>41f20000-0000-4000-8000-000000000006</dcsset:userSettingID>
+</dcscor:item>
+</dcsset:dataParameters>
   <dcsset:item xsi:type="dcsset:StructureItemGroup"><dcsset:order><dcsset:item xsi:type="dcsset:OrderItemAuto"/></dcsset:order><dcsset:selection><dcsset:item xsi:type="dcsset:SelectedItemAuto"/></dcsset:selection></dcsset:item>
  </dcsset:settings>
 </settingsVariant>

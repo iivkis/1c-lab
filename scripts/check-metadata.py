@@ -175,6 +175,41 @@ def check(src: Path) -> int:
                 if re.search(pattern, module, re.IGNORECASE) is None:
                     fail(f"Form {path} refers to missing BSL handler {handler}")
         if is_dcs:
+            # Every report requires interactive warehouse and date parameters.
+            variants = [
+                e for e in root.iter() if lname(e) == "settingsVariant"
+            ]
+            if not variants:
+                fail(f"Report DCS has no settings variant: {path}")
+            for variant in variants:
+                data_parameters = [
+                    e for e in variant.iter() if lname(e) == "dataParameters"
+                ]
+                if len(data_parameters) != 1:
+                    fail(f"Report DCS is missing user data parameters: {path}")
+                actual = {}
+                for item in data_parameters[0]:
+                    name_el = next(
+                        (e for e in item if lname(e) == "parameter"), None
+                    )
+                    setting_id = next(
+                        (e for e in item if lname(e) == "userSettingID"), None
+                    )
+                    view = next(
+                        (e for e in item if lname(e) == "viewMode"), None
+                    )
+                    if name_el is not None:
+                        actual[name_el.text] = (
+                            setting_id.text if setting_id is not None else "",
+                            view.text if view is not None else "",
+                        )
+                needed = {"НачалоПериода", "КонецПериода", "Склад"}
+                if needed - set(actual):
+                    fail(f"Report DCS lacks parameters {sorted(needed - set(actual))}: {path}")
+                if any(not actual[name][0] or actual[name][1] != "QuickAccess"
+                       for name in needed):
+                    fail(f"Report DCS parameters are not available in quick settings: {path}")
+        if is_dcs:
             queries = [
                 (element.text or "").strip()
                 for element in root.iter()

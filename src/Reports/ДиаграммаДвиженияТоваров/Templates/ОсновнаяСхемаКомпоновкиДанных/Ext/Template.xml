@@ -18,6 +18,26 @@
  <dcsset:name>Основной</dcsset:name><dcsset:presentation xsi:type="v8:LocalStringType"><v8:item><v8:lang>ru</v8:lang><v8:content>Диаграмма движения товаров</v8:content></v8:item></dcsset:presentation>
  <dcsset:settings>
   <dcsset:selection><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Товар</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Приход</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Расход</dcsset:field></dcsset:item></dcsset:selection>
+  <dcsset:dataParameters>
+<dcscor:item xsi:type="dcsset:SettingsParameterValue">
+<dcscor:parameter>НачалоПериода</dcscor:parameter>
+<dcscor:value xsi:type="xs:dateTime">2020-01-01T00:00:00</dcscor:value>
+<dcsset:viewMode>QuickAccess</dcsset:viewMode>
+<dcsset:userSettingID>41f20000-0000-4000-8000-00000000000a</dcsset:userSettingID>
+</dcscor:item>
+<dcscor:item xsi:type="dcsset:SettingsParameterValue">
+<dcscor:parameter>КонецПериода</dcscor:parameter>
+<dcscor:value xsi:type="xs:dateTime">2099-12-31T23:59:59</dcscor:value>
+<dcsset:viewMode>QuickAccess</dcsset:viewMode>
+<dcsset:userSettingID>41f20000-0000-4000-8000-00000000000b</dcsset:userSettingID>
+</dcscor:item>
+<dcscor:item xsi:type="dcsset:SettingsParameterValue">
+<dcscor:parameter>Склад</dcscor:parameter>
+<dcscor:value xsi:nil="true"/>
+<dcsset:viewMode>QuickAccess</dcsset:viewMode>
+<dcsset:userSettingID>41f20000-0000-4000-8000-00000000000c</dcsset:userSettingID>
+</dcscor:item>
+</dcsset:dataParameters>
   <dcsset:item xsi:type="dcsset:StructureItemChart"><dcsset:point><dcsset:groupItems><dcsset:item xsi:type="dcsset:GroupItemField"><dcsset:field>Товар</dcsset:field><dcsset:groupType>Items</dcsset:groupType><dcsset:periodAdditionType>None</dcsset:periodAdditionType></dcsset:item></dcsset:groupItems><dcsset:order><dcsset:item xsi:type="dcsset:OrderItemAuto"/></dcsset:order><dcsset:selection><dcsset:item xsi:type="dcsset:SelectedItemAuto"/></dcsset:selection></dcsset:point><dcsset:selection><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Приход</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Расход</dcsset:field></dcsset:item></dcsset:selection></dcsset:item>
  </dcsset:settings>
 </settingsVariant>

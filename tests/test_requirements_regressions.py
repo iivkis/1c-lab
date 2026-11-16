@@ -103,6 +103,28 @@ class RequirementsRegressionTests(unittest.TestCase):
         self.assertIn("ПроверитьОтказОтПроведения(ПовторДляПроведения);", code)
         self.assertIn("Не Накладная.Проведен", code)
 
+    def test_report_settings_expose_warehouse_and_period(self):
+        from xml.etree import ElementTree as ET
+        for source in sorted((SRC / "Reports").glob(
+            "*/Templates/ОсновнаяСхемаКомпоновкиДанных/Ext/Template.xml"
+        )):
+            with self.subTest(report=source.parts[-5]):
+                root = ET.parse(source).getroot()
+                data_parameters = [
+                    e for e in root.iter()
+                    if e.tag.rpartition("}")[2] == "dataParameters"
+                ]
+                self.assertTrue(data_parameters)
+                entries = {
+                    e.text
+                    for element in data_parameters[0]
+                    for e in element
+                    if e.tag.rpartition("}")[2] == "parameter"
+                }
+                self.assertTrue(
+                    {"НачалоПериода", "КонецПериода", "Склад"} <= entries
+                )
+
     def test_real_platform_remains_separate_from_static_ci(self):
         script = (ROOT / "scripts" / "check-config-in-onec.sh").read_text(
             encoding="utf-8"
