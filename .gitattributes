@@ -1,0 +1,2 @@
+# A DT is a binary infobase backup, not source code. Download LFS objects in CI.
+*.dt filter=lfs diff=lfs merge=lfs -text

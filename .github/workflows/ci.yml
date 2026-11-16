@@ -1,0 +1,40 @@
+name: 1C laboratory CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nix-static:
+    name: Nix + source checks (not DT validation)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: cachix/install-nix-action@v31
+      - name: Check Nix flake and scripts
+        run: nix flake check --show-trace -L
+
+  educational-1c-dt:
+    # Never execute untrusted PR code on the self-hosted runner.
+    # Enable only after the training platform and runner are installed.
+    if: >-
+      ${{ vars.ONEC_TRAINING_CI == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+    name: Educational 1C DT restore and validation
+    runs-on: [self-hosted, linux, x64, onec-training]
+    timeout-minutes: 45
+    env:
+      ONEC_TRAINING_BIN: ${{ vars.ONEC_TRAINING_BIN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: cachix/install-nix-action@v31
+      - name: Restore and validate the DT using 1cv8t
+        run: nix develop --command bash scripts/validate-dt.sh artifacts/warehouse.dt

@@ -1,0 +1,8 @@
+# Local 1C infobases, generated outputs and logs
+1Cv8.1CD
+*.cf
+*.cfe
+*.log
+.direnv/
+result
+result-*
