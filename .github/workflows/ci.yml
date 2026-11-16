@@ -1,53 +1,43 @@
-name: Verify 1C .dt with educational platform
+name: BSL syntax
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  preflight:
-    name: Require DT and real 1C CI
+  bsl-syntax:
+    name: Check BSL syntax
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: false
-      - name: Reject missing DT or disabled platform validation
-        shell: bash
-        env:
-          ONEC_TRAINING_CI: ${{ vars.ONEC_TRAINING_CI }}
-        run: |
-          set -euo pipefail
-          if [[ ! -f artifacts/warehouse.dt ]]; then
-            echo "::error::No artifacts/warehouse.dt in the repository. Cannot validate 1C."
-            exit 1
-          fi
-          if [[ "$ONEC_TRAINING_CI" != "true" ]]; then
-            echo "::error::Educational 1C validation is not configured. Install 1cv8t on a self-hosted Linux x64 runner (label: onec-training), then set ONEC_TRAINING_CI=true."
-            exit 1
-          fi
-
-  validate-dt:
-    name: Restore, compile and verify DT in educational 1C
-    needs: preflight
-    # The real 1C check runs only on trusted main, never on untrusted pull requests.
-    runs-on: [self-hosted, linux, x64, onec-training]
-    timeout-minutes: 45
-    env:
-      ONEC_TRAINING_BIN: ${{ vars.ONEC_TRAINING_BIN }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-      - name: Retrieve actual DT from Git LFS
+      - name: Require BSL sources
         shell: bash
         run: |
-          set -euo pipefail
-          git lfs pull
-      - name: Check restored database and configuration via 1cv8t
+          if [[ ! -d src ]] || ! find src -type f -name '*.bsl' -print -quit | grep -q .; then
+            echo '::error::No .bsl files under src/. Push source code first.'
+            exit 1
+          fi
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download pinned BSL Language Server v1.0.7
         shell: bash
-        run: bash scripts/validate-dt.sh artifacts/warehouse.dt
+        run: |
+          curl --fail --location --retry 3 \
+            'https://github.com/1c-syntax/bsl-language-server/releases/download/v1.0.7/bsl-language-server-1.0.7-exec.jar' \
+            --output bsl-language-server.jar
+          echo '9f62765edd344d66456da24c906eaf623a03c56e90e5aafee466200100909f64  bsl-language-server.jar' | sha256sum --check
+      - name: Check syntax of src/**/*.bsl
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/bsl-report"
+          java -Xmx2g -jar bsl-language-server.jar analyze \
+            --srcDir src --reporter json --outputDir "$RUNNER_TEMP/bsl-report"
+          python3 scripts/check-bsl-report.py "$RUNNER_TEMP/bsl-report/bsl-json.json" src
