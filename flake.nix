@@ -47,7 +47,7 @@
           cd ${self}
           shellcheck scripts/*.sh
           shfmt -ln=bash scripts/*.sh > /dev/null
-          actionlint .github/workflows/ci.yml
+          actionlint -config-file .github/actionlint.yaml .github/workflows/ci.yml
           PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
           test -s ./ФИНАЛЬНОЕ_ТЗ_1С_Тема_20_Контроль_неснижаемого_остатка.md
           mkdir -p "$out"
