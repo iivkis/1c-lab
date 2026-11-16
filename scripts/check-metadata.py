@@ -12,6 +12,7 @@ CFG_TYPE = "http://v8.1c.ru/8.1/data/enterprise/current-config"
 FOLDERS = {
     "Catalog": "Catalogs",
     "Document": "Documents",
+    "Report": "Reports",
     "AccumulationRegister": "AccumulationRegisters",
     "CommonModule": "CommonModules",
     "DataProcessor": "DataProcessors",
@@ -21,6 +22,7 @@ FOLDERS = {
 REQUIRED = {
     "Catalog": {"Товары", "Склады", "Поставщики", "Получатели"},
     "Document": {"ПриходнаяНакладная", "РасходнаяНакладная"},
+    "Report": {"КонтрольНеснижаемогоОстатка", "ПоступленияОтПоставщиков", "ВыдачаПолучателям", "ДиаграммаДвиженияТоваров"},
     "AccumulationRegister": {
         "ОстаткиТоваров", "ПоступленияПоПоставщикам", "ВыдачиПоПолучателям"
     },
@@ -75,8 +77,20 @@ def check(src: Path) -> int:
     for path in paths:
         root = ET.parse(path).getroot()
         rel = path.relative_to(src)
-        is_form_layout = len(rel.parts) == 6 and rel.parts[0] == "DataProcessors" and rel.parts[2:] == ("Forms", "Форма", "Ext", "Form.xml")
-        if lname(root) != ("Form" if is_form_layout else "MetaDataObject"):
+        is_form_layout = (
+            len(rel.parts) == 6
+            and rel.parts[0] in {"DataProcessors", "Documents", "Reports"}
+            and rel.parts[2] == "Forms"
+            and rel.parts[4:] == ("Ext", "Form.xml")
+        )
+        is_dcs = (
+            len(rel.parts) == 6
+            and rel.parts[0] == "Reports"
+            and rel.parts[2] == "Templates"
+            and rel.parts[4:] == ("Ext", "Template.xml")
+        )
+        expected_root = "Form" if is_form_layout else "DataCompositionSchema" if is_dcs else "MetaDataObject"
+        if lname(root) != expected_root:
             fail(f"{path} has an unexpected XML root")
         for obj in root.iter():
             value = obj.attrib.get("uuid")
@@ -88,12 +102,17 @@ def check(src: Path) -> int:
         if path == source:
             continue
         if len(rel.parts) > 2:
-            if rel.parts[0] != "DataProcessors" or rel.parts[1] not in listed["DataProcessor"]:
+            folder = rel.parts[0]
+            kinds = [kind for kind, parent in FOLDERS.items() if parent == folder]
+            if len(kinds) != 1 or rel.parts[1] not in listed[kinds[0]]:
                 fail(f"Unregistered nested metadata file: {rel}")
-            if len(rel.parts) == 4 and rel.parts[2:] == ("Forms", "Форма.xml"):
+            if len(rel.parts) == 4 and rel.parts[2] == "Forms" and path.suffix == ".xml":
                 if root.find(f"{MD}Form") is None:
                     fail(f"Missing form object in {rel}")
-            elif not is_form_layout:
+            elif len(rel.parts) == 4 and rel.parts[2] == "Templates" and path.suffix == ".xml":
+                if root.find(f"{MD}Template") is None:
+                    fail(f"Missing template object in {rel}")
+            elif not (is_form_layout or is_dcs):
                 fail(f"Unexpected nested XML file: {rel}")
             continue
         if len(rel.parts) != 2 or rel.parts[0] not in FOLDERS.values():

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DataCompositionSchema xmlns:cfg="http://v8.1c.ru/8.1/data/enterprise/current-config" xmlns="http://v8.1c.ru/8.1/data-composition-system/schema" xmlns:dcscom="http://v8.1c.ru/8.1/data-composition-system/common" xmlns:dcscor="http://v8.1c.ru/8.1/data-composition-system/core" xmlns:dcsset="http://v8.1c.ru/8.1/data-composition-system/settings" xmlns:v8="http://v8.1c.ru/8.1/data/core" xmlns:v8ui="http://v8.1c.ru/8.1/data/ui" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataSource><name>ИсточникДанных1</name><dataSourceType>Local</dataSourceType></dataSource>
+<dataSet xsi:type="DataSetQuery"><name>ДанныеСклада</name><field xsi:type="DataSetFieldField"><dataPath>Товар</dataPath><field>Товар</field></field>
+<field xsi:type="DataSetFieldField"><dataPath>ОстатокНаНачало</dataPath><field>ОстатокНаНачало</field></field>
+<field xsi:type="DataSetFieldField"><dataPath>Приход</dataPath><field>Приход</field></field>
+<field xsi:type="DataSetFieldField"><dataPath>Расход</dataPath><field>Расход</field></field>
+<field xsi:type="DataSetFieldField"><dataPath>ОстатокНаКонец</dataPath><field>ОстатокНаКонец</field></field>
+<field xsi:type="DataSetFieldField"><dataPath>МинимальныйОстаток</dataPath><field>МинимальныйОстаток</field></field>
+<field xsi:type="DataSetFieldField"><dataPath>Дельта</dataPath><field>Дельта</field></field><dataSource>ИсточникДанных1</dataSource><query>ВЫБРАТЬ
+ Товары.Ссылка КАК Товар,
+ ЕСТЬNULL(Обороты.КоличествоНачальныйОстаток, 0) КАК ОстатокНаНачало,
+ ЕСТЬNULL(Обороты.КоличествоПриход, 0) КАК Приход,
+ ЕСТЬNULL(Обороты.КоличествоРасход, 0) КАК Расход,
+ ЕСТЬNULL(Обороты.КоличествоКонечныйОстаток, 0) КАК ОстатокНаКонец,
+ Товары.МинимальныйОстаток КАК МинимальныйОстаток,
+ ЕСТЬNULL(Обороты.КоличествоКонечныйОстаток, 0) - Товары.МинимальныйОстаток КАК Дельта
+ИЗ
+ Справочник.Товары КАК Товары
+ ЛЕВОЕ СОЕДИНЕНИЕ РегистрНакопления.ОстаткиТоваров.ОстаткиИОбороты(&amp;НачалоПериода, &amp;КонецПериода, , , Склад = &amp;Склад) КАК Обороты
+ ПО Товары.Ссылка = Обороты.Товар
+ГДЕ НЕ Товары.ЭтоГруппа
+УПОРЯДОЧИТЬ ПО Товары.Наименование</query></dataSet>
+<totalField><dataPath>ОстатокНаНачало</dataPath><expression>Сумма(ОстатокНаНачало)</expression></totalField>
+<totalField><dataPath>Приход</dataPath><expression>Сумма(Приход)</expression></totalField>
+<totalField><dataPath>Расход</dataPath><expression>Сумма(Расход)</expression></totalField>
+<totalField><dataPath>ОстатокНаКонец</dataPath><expression>Сумма(ОстатокНаКонец)</expression></totalField>
+<totalField><dataPath>МинимальныйОстаток</dataPath><expression>Сумма(МинимальныйОстаток)</expression></totalField>
+<totalField><dataPath>Дельта</dataPath><expression>Сумма(Дельта)</expression></totalField>
+<parameter><name>НачалоПериода</name><title xsi:type="v8:LocalStringType"><v8:item><v8:lang>ru</v8:lang><v8:content>Начало периода</v8:content></v8:item></title><valueType><v8:Type>xs:dateTime</v8:Type><v8:DateQualifiers><v8:DateFractions>DateTime</v8:DateFractions></v8:DateQualifiers></valueType><value xsi:type="xs:dateTime">2020-01-01T00:00:00</value><useRestriction>false</useRestriction></parameter>
+<parameter><name>КонецПериода</name><title xsi:type="v8:LocalStringType"><v8:item><v8:lang>ru</v8:lang><v8:content>Конец периода</v8:content></v8:item></title><valueType><v8:Type>xs:dateTime</v8:Type><v8:DateQualifiers><v8:DateFractions>DateTime</v8:DateFractions></v8:DateQualifiers></valueType><value xsi:type="xs:dateTime">2099-12-31T23:59:59</value><useRestriction>false</useRestriction></parameter>
+<parameter><name>Склад</name><title xsi:type="v8:LocalStringType"><v8:item><v8:lang>ru</v8:lang><v8:content>Склад</v8:content></v8:item></title><valueType><v8:Type>cfg:CatalogRef.Склады</v8:Type></valueType><useRestriction>false</useRestriction></parameter>
+<settingsVariant>
+ <dcsset:name>Основной</dcsset:name><dcsset:presentation xsi:type="v8:LocalStringType"><v8:item><v8:lang>ru</v8:lang><v8:content>Контроль неснижаемого остатка</v8:content></v8:item></dcsset:presentation>
+ <dcsset:settings>
+  <dcsset:selection><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Товар</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>ОстатокНаНачало</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Приход</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Расход</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>ОстатокНаКонец</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>МинимальныйОстаток</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Дельта</dcsset:field></dcsset:item></dcsset:selection>
+  <dcsset:item xsi:type="dcsset:StructureItemGroup"><dcsset:order><dcsset:item xsi:type="dcsset:OrderItemAuto"/></dcsset:order><dcsset:selection><dcsset:item xsi:type="dcsset:SelectedItemAuto"/></dcsset:selection></dcsset:item>
+ </dcsset:settings>
+</settingsVariant>
+</DataCompositionSchema>

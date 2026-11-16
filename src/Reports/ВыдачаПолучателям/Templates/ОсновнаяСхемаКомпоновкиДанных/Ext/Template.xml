@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DataCompositionSchema xmlns:cfg="http://v8.1c.ru/8.1/data/enterprise/current-config" xmlns="http://v8.1c.ru/8.1/data-composition-system/schema" xmlns:dcscom="http://v8.1c.ru/8.1/data-composition-system/common" xmlns:dcscor="http://v8.1c.ru/8.1/data-composition-system/core" xmlns:dcsset="http://v8.1c.ru/8.1/data-composition-system/settings" xmlns:v8="http://v8.1c.ru/8.1/data/core" xmlns:v8ui="http://v8.1c.ru/8.1/data/ui" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataSource><name>ИсточникДанных1</name><dataSourceType>Local</dataSourceType></dataSource>
+<dataSet xsi:type="DataSetQuery"><name>ДанныеСклада</name><field xsi:type="DataSetFieldField"><dataPath>Получатель</dataPath><field>Получатель</field></field>
+<field xsi:type="DataSetFieldField"><dataPath>Товар</dataPath><field>Товар</field></field>
+<field xsi:type="DataSetFieldField"><dataPath>Количество</dataPath><field>Количество</field></field><dataSource>ИсточникДанных1</dataSource><query>ВЫБРАТЬ
+ Обороты.Получатель КАК Получатель,
+ Обороты.Товар КАК Товар,
+ Обороты.КоличествоОборот КАК Количество
+ИЗ РегистрНакопления.ВыдачиПоПолучателям.Обороты(&amp;НачалоПериода, &amp;КонецПериода, , Склад = &amp;Склад) КАК Обороты
+УПОРЯДОЧИТЬ ПО Получатель, Товар</query></dataSet>
+<totalField><dataPath>Количество</dataPath><expression>Сумма(Количество)</expression></totalField>
+<parameter><name>НачалоПериода</name><title xsi:type="v8:LocalStringType"><v8:item><v8:lang>ru</v8:lang><v8:content>Начало периода</v8:content></v8:item></title><valueType><v8:Type>xs:dateTime</v8:Type><v8:DateQualifiers><v8:DateFractions>DateTime</v8:DateFractions></v8:DateQualifiers></valueType><value xsi:type="xs:dateTime">2020-01-01T00:00:00</value><useRestriction>false</useRestriction></parameter>
+<parameter><name>КонецПериода</name><title xsi:type="v8:LocalStringType"><v8:item><v8:lang>ru</v8:lang><v8:content>Конец периода</v8:content></v8:item></title><valueType><v8:Type>xs:dateTime</v8:Type><v8:DateQualifiers><v8:DateFractions>DateTime</v8:DateFractions></v8:DateQualifiers></valueType><value xsi:type="xs:dateTime">2099-12-31T23:59:59</value><useRestriction>false</useRestriction></parameter>
+<parameter><name>Склад</name><title xsi:type="v8:LocalStringType"><v8:item><v8:lang>ru</v8:lang><v8:content>Склад</v8:content></v8:item></title><valueType><v8:Type>cfg:CatalogRef.Склады</v8:Type></valueType><useRestriction>false</useRestriction></parameter>
+<settingsVariant>
+ <dcsset:name>Основной</dcsset:name><dcsset:presentation xsi:type="v8:LocalStringType"><v8:item><v8:lang>ru</v8:lang><v8:content>Выдача получателям</v8:content></v8:item></dcsset:presentation>
+ <dcsset:settings>
+  <dcsset:selection><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Получатель</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Товар</dcsset:field></dcsset:item><dcsset:item xsi:type="dcsset:SelectedItemField"><dcsset:field>Количество</dcsset:field></dcsset:item></dcsset:selection>
+  <dcsset:item xsi:type="dcsset:StructureItemGroup"><dcsset:order><dcsset:item xsi:type="dcsset:OrderItemAuto"/></dcsset:order><dcsset:selection><dcsset:item xsi:type="dcsset:SelectedItemAuto"/></dcsset:selection></dcsset:item>
+ </dcsset:settings>
+</settingsVariant>
+</DataCompositionSchema>

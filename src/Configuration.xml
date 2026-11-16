@@ -262,6 +262,10 @@
 			<Catalog>Получатели</Catalog>
 			<Document>ПриходнаяНакладная</Document>
 			<Document>РасходнаяНакладная</Document>
+			<Report>КонтрольНеснижаемогоОстатка</Report>
+			<Report>ПоступленияОтПоставщиков</Report>
+			<Report>ВыдачаПолучателям</Report>
+			<Report>ДиаграммаДвиженияТоваров</Report>
 			<DataProcessor>Задача04Гипотенуза</DataProcessor>
 			<DataProcessor>Задача12СуммаКвадратов</DataProcessor>
 			<DataProcessor>Задача22Водоснабжение</DataProcessor>
