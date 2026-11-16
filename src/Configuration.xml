@@ -267,6 +267,7 @@
 			<Report>ВыдачаПолучателям</Report>
 			<Report>ДиаграммаДвиженияТоваров</Report>
 			<DataProcessor>АнализСкладскихДанных</DataProcessor>
+			<DataProcessor>ПроверкаЛабораторной</DataProcessor>
 			<DataProcessor>Задача04Гипотенуза</DataProcessor>
 			<DataProcessor>Задача12СуммаКвадратов</DataProcessor>
 			<DataProcessor>Задача22Водоснабжение</DataProcessor>

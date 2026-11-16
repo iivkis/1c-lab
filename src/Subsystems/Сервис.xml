@@ -15,7 +15,7 @@
 			<UseOneCommand>false</UseOneCommand>
 			<Explanation/>
 			<Picture/>
-			<Content><xr:Item xsi:type="xr:MDObjectRef">DataProcessor.АнализСкладскихДанных</xr:Item></Content>
+			<Content><xr:Item xsi:type="xr:MDObjectRef">DataProcessor.АнализСкладскихДанных</xr:Item><xr:Item xsi:type="xr:MDObjectRef">DataProcessor.ПроверкаЛабораторной</xr:Item></Content>
 		</Properties>
 		<ChildObjects/>
 	</Subsystem>
