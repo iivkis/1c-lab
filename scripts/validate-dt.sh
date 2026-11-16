@@ -78,11 +78,14 @@ run_stage restore /RestoreIB "$dt_file"
 
 run_stage check-config /CheckConfig \
   -ConfigLogIntegrity -IncorrectReferences -ThinClient \
-  -ThickClientManagedApplication -ExtendedModulesCheck
+  -ThickClientManagedApplication -Server -HandlersExistence -ExtendedModulesCheck
 
 run_stage check-infobase /IBCheckAndRepair -LogAndRefsIntegrity -TestOnly
 run_stage export-config /DumpCfg "$workdir/verified.cf"
 [[ -s "$workdir/verified.cf" ]] || fail 'Configuration export did not produce a nonempty .cf file.'
 
-printf 'PASS: educational 1C restored the DT, checked configuration and infobase, and exported CF.\n'
+run_stage export-db-config /DumpDBCfg "$workdir/database-config.cf"
+[[ -s "$workdir/database-config.cf" ]] || fail 'Database configuration export did not produce a nonempty .cf file.'
+
+printf 'PASS: educational 1C restored the DT, checked configuration and infobase, and exported both CF variants.\n'
 printf 'NOTE: business rules and document posting still require scenario tests in 1C.\n'
