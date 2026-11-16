@@ -125,6 +125,20 @@ class RequirementsRegressionTests(unittest.TestCase):
                     {"НачалоПериода", "КонецПериода", "Склад"} <= entries
                 )
 
+    def test_hierarchical_product_folders_are_not_in_stock_reports(self):
+        catalog = (SRC / "Catalogs" / "Товары.xml").read_text(encoding="utf-8")
+        self.assertIn("<HierarchyType>HierarchyFoldersAndItems</HierarchyType>", catalog)
+        sources = [
+            SRC / "CommonModules" / "СкладскиеОтчетыСервер" / "Ext" / "Module.bsl",
+            SRC / "DataProcessors" / "АнализСкладскихДанных" / "Ext" / "ObjectModule.bsl",
+            SRC / "Reports" / "КонтрольНеснижаемогоОстатка" / "Templates"
+            / "ОсновнаяСхемаКомпоновкиДанных" / "Ext" / "Template.xml",
+        ]
+        for path in sources:
+            with self.subTest(path=path):
+                query = path.read_text(encoding="utf-8")
+                self.assertRegex(query, r"ГДЕ\s*\|?\s*НЕ\s+Товары\.ЭтоГруппа")
+
     def test_real_platform_remains_separate_from_static_ci(self):
         script = (ROOT / "scripts" / "check-config-in-onec.sh").read_text(
             encoding="utf-8"

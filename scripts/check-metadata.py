@@ -104,6 +104,39 @@ def verify_document_form_paths(src: Path, form_path: Path, form: ET.Element) -> 
             fail(f"Unknown form attribute in DataPath {data_path}: {form_path}")
 
 
+def verify_declared_forms(src: Path, kind: str, name: str, metadata: ET.Element) -> None:
+    """Ensure every form declared in metadata has its XML layout and BSL module."""
+    child_objects = metadata.find(f"{MD}ChildObjects")
+    names = {
+        (form.text or "").strip()
+        for form in child_objects if lname(form) == "Form" and (form.text or "").strip()
+    } if child_objects is not None else set()
+    if not names:
+        fail(f"{kind}.{name} declares no forms")
+
+    default_property = "DefaultObjectForm" if kind == "Document" else "DefaultForm"
+    default_form = metadata.findtext(f"{MD}Properties/{MD}{default_property}")
+    if default_form and default_form not in {
+        f"{kind}.{name}.Form.{form_name}" for form_name in names
+    }:
+        fail(f"Default form is not declared for {kind}.{name}: {default_form}")
+
+    for form_name in sorted(names):
+        base = src / FOLDERS[kind] / name / "Forms"
+        declaration = base / f"{form_name}.xml"
+        layout = base / form_name / "Ext" / "Form.xml"
+        module = base / form_name / "Ext" / "Form" / "Module.bsl"
+        for file in (declaration, layout, module):
+            if not file.is_file():
+                fail(f"Declared form file is missing: {file}")
+        form_root = ET.parse(declaration).getroot()
+        form_metadata = form_root.find(f"{MD}Form")
+        if form_metadata is None or form_metadata.findtext(
+            f"{MD}Properties/{MD}Name"
+        ) != form_name:
+            fail(f"Declared form has mismatched metadata: {declaration}")
+
+
 def check(src: Path) -> int:
     source = (src / "Configuration.xml")
     if not source.is_file():
@@ -252,6 +285,9 @@ def check(src: Path) -> int:
                     ref = field.text.split(".", 1)[1]
                     if ref not in listed["Catalog"]:
                         fail(f"Unknown catalog reference {ref} in {path}")
+
+        if kind in {"Document", "DataProcessor"}:
+            verify_declared_forms(src, kind, name, metadata)
 
         if kind == "DataProcessor":
             forms = metadata.find(f"{MD}ChildObjects")
