@@ -76,6 +76,23 @@ class RequirementsRegressionTests(unittest.TestCase):
         self.assertIn("ДопустимыйРасходСклад2", code)
         self.assertIn("СохранённаяНакладная", code)
 
+    def test_invalid_save_and_posting_have_independent_test_documents(self):
+        code = (
+            SRC / "DataProcessors" / "ПроверкаЛабораторной"
+            / "Ext" / "ObjectModule.bsl"
+        ).read_text(encoding="utf-8")
+        for name in (
+            "ОшибочнаяНакладнаяЗапись",
+            "ОшибочнаяНакладнаяПроведение",
+            "РасходДругогоСкладаЗапись",
+            "РасходДругогоСкладаПроведение",
+            "ПовторДляПроведения",
+        ):
+            self.assertIn(name + " = СоздатьРасход(", code)
+        self.assertIn("ПроверитьОтказОтЗаписи(Повтор);", code)
+        self.assertIn("ПроверитьОтказОтПроведения(ПовторДляПроведения);", code)
+        self.assertIn("Не Накладная.Проведен", code)
+
     def test_real_platform_remains_separate_from_static_ci(self):
         script = (ROOT / "scripts" / "check-config-in-onec.sh").read_text(
             encoding="utf-8"
