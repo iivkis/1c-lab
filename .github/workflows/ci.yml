@@ -36,6 +36,8 @@ jobs:
           echo '9f62765edd344d66456da24c906eaf623a03c56e90e5aafee466200100909f64  bsl-language-server.jar' | sha256sum --check
       - name: Check 1C metadata XML structure
         run: python3 scripts/check-metadata.py src
+      - name: Regression checks for warehouse source contracts
+        run: python3 -m unittest discover -s tests -p 'test_requirements_regressions.py' -v
       - name: Check syntax of src/**/*.bsl
         shell: bash
         run: |
