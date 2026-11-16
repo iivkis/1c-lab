@@ -1,32 +1,40 @@
-name: 1C laboratory CI
+name: Verify 1C .dt with educational platform
 
 on:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  nix-static:
-    name: Nix + source checks (not DT validation)
+  preflight:
+    name: Require DT and real 1C CI
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: false
-      - uses: cachix/install-nix-action@v31
-      - name: Check Nix flake and scripts
-        run: nix flake check --show-trace -L
+      - name: Reject missing DT or disabled platform validation
+        shell: bash
+        env:
+          ONEC_TRAINING_CI: ${{ vars.ONEC_TRAINING_CI }}
+        run: |
+          set -euo pipefail
+          if [[ ! -f artifacts/warehouse.dt ]]; then
+            echo "::error::No artifacts/warehouse.dt in the repository. Cannot validate 1C."
+            exit 1
+          fi
+          if [[ "$ONEC_TRAINING_CI" != "true" ]]; then
+            echo "::error::Educational 1C validation is not configured. Install 1cv8t on a self-hosted Linux x64 runner (label: onec-training), then set ONEC_TRAINING_CI=true."
+            exit 1
+          fi
 
-  educational-1c-dt:
-    # Never execute untrusted PR code on the self-hosted runner.
-    # Enable only after the training platform and runner are installed.
-    if: >-
-      ${{ vars.ONEC_TRAINING_CI == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
-    name: Educational 1C DT restore and validation
+  validate-dt:
+    name: Restore, compile and verify DT in educational 1C
+    needs: preflight
+    # The real 1C check runs only on trusted main, never on untrusted pull requests.
     runs-on: [self-hosted, linux, x64, onec-training]
     timeout-minutes: 45
     env:
@@ -35,6 +43,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
-      - uses: cachix/install-nix-action@v31
-      - name: Restore and validate the DT using 1cv8t
-        run: nix develop --command bash scripts/validate-dt.sh artifacts/warehouse.dt
+      - name: Retrieve actual DT from Git LFS
+        shell: bash
+        run: |
+          set -euo pipefail
+          git lfs pull
+      - name: Check restored database and configuration via 1cv8t
+        shell: bash
+        run: bash scripts/validate-dt.sh artifacts/warehouse.dt
