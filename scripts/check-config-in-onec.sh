@@ -36,13 +36,18 @@ stage() {
   local name="$1"; shift
   local status=0
   local log="$workdir/logs/${name}.log"
+  local result_file="$workdir/logs/${name}.result"
   local console="$workdir/logs/${name}.console.log"
   printf '\n[1C] %s\n' "$name"
   timeout --kill-after=10s "${ONEC_TIMEOUT_SEC:-900}" \
-    "${runner[@]}" "$@" /Out "$log" >"$console" 2>&1 || status=$?
+    "${runner[@]}" "$@" /Out "$log" /DumpResult "$result_file" >"$console" 2>&1 || status=$?
   [[ ! -s "$log" ]] || cat "$log"
   [[ ! -s "$console" ]] || cat "$console"
   (( status == 0 )) || die "1C stage '$name' failed (exit $status)."
+  [[ -s "$result_file" ]] || die "1C stage '$name' produced no /DumpResult file."
+  local platform_result
+  platform_result="$(LC_ALL=C tr -cd '0-9-' < "$result_file")"
+  [[ "$platform_result" == "0" ]] || die "1C stage '$name' returned /DumpResult=$platform_result."
 }
 
 stage create CREATEINFOBASE "File=$db_dir"

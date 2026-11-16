@@ -24,12 +24,15 @@ fi
 
 if ! timeout --kill-after=10s "${ONEC_TIMEOUT_SEC:-900}" \
   "${runner[@]}" DESIGNER /F "$db_dir" /DumpIB "$output" \
-  /DisableStartupDialogs /Out "$tmp/dump.log" >"$tmp/console.log" 2>&1; then
+  /DisableStartupDialogs /Out "$tmp/dump.log" /DumpResult "$tmp/dump.result" >"$tmp/console.log" 2>&1; then
   [[ ! -f "$tmp/dump.log" ]] || cat "$tmp/dump.log" >&2
   cat "$tmp/console.log" >&2
   rm -f -- "$output"
   die "Cannot dump infobase to .dt."
 fi
+[[ -s "$tmp/dump.result" ]] || die "1C did not return a /DumpResult for .dt export."
+result_code="$(LC_ALL=C tr -cd '0-9-' < "$tmp/dump.result")"
+[[ "$result_code" == "0" ]] || { rm -f -- "$output"; die "1C /DumpIB failed, /DumpResult=$result_code."; }
 [[ -s "$output" ]] || die "Empty .dt after export."
 printf 'PASS: saved %s (%s bytes)\n' "$output" "$(stat -c %s "$output")"
 printf 'WARNING: inspect for personal information before uploading .dt.\n'
