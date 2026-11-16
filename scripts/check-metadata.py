@@ -2,6 +2,7 @@
 """Structural checks of a hierarchical 1C XML export (NOT a platform load test)."""
 from __future__ import annotations
 
+import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -101,6 +102,34 @@ def check(src: Path) -> int:
 
         if path == source:
             continue
+        if is_form_layout:
+            source_module = path.parent / "Form" / "Module.bsl"
+            if not source_module.is_file():
+                fail(f"Form has no BSL module: {source_module}")
+            module = source_module.read_text(encoding="utf-8-sig")
+            handlers = {
+                (element.text or "").strip()
+                for element in root.iter()
+                if lname(element) in {"Action", "Event"}
+                and (element.text or "").strip()
+            }
+            for handler in sorted(handlers):
+                pattern = r"\b(?:Процедура|Функция)\s+" + re.escape(handler) + r"\s*\("
+                if re.search(pattern, module, re.IGNORECASE) is None:
+                    fail(f"Form {path} refers to missing BSL handler {handler}")
+        if is_dcs:
+            queries = [
+                (element.text or "").strip()
+                for element in root.iter()
+                if lname(element) == "query"
+            ]
+            if not queries or not all("РегистрНакопления." in q for q in queries):
+                fail(f"Report schema has no register-based query: {path}")
+            if rel.parts[1] == "ДиаграммаДвиженияТоваров":
+                if not any("StructureItemChart" in str(value)
+                           for element in root.iter()
+                           for value in element.attrib.values()):
+                    fail(f"Report has no chart structure: {path}")
         if len(rel.parts) > 2:
             folder = rel.parts[0]
             kinds = [kind for kind, parent in FOLDERS.items() if parent == folder]
@@ -137,6 +166,16 @@ def check(src: Path) -> int:
             if forms is None or not any(e.text == "Форма" for e in forms):
                 fail(f"DataProcessor has no UI form: {path}")
 
+        if kind == "Report":
+            forms = metadata.find(f"{MD}ChildObjects")
+            if forms is None or not any(
+                lname(e) == "Template" and e.text == "ОсновнаяСхемаКомпоновкиДанных"
+                for e in forms
+            ):
+                fail(f"Report is missing the DCS template: {path}")
+            dcs = src / "Reports" / name / "Templates" / "ОсновнаяСхемаКомпоновкиДанных" / "Ext" / "Template.xml"
+            if not dcs.is_file():
+                fail(f"Report DCS schema missing: {dcs}")
         if kind == "Document":
             record_nodes = metadata.find(f"{MD}Properties/{MD}RegisterRecords")
             refs = set()
