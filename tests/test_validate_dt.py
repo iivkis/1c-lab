@@ -1,6 +1,7 @@
 """Tests of the wrapper only; these do NOT replace real 1C platform execution."""
 
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import tempfile
@@ -48,7 +49,7 @@ class ValidationScriptTests(unittest.TestCase):
         self.dt = self.root / "warehouse.dt"
         self.dt.write_bytes(b"mock binary DT, not a real 1C archive")
         self.bin = self.root / "1cv8t"
-        self.bin.write_text(MOCK_1CV8T, encoding="utf-8")
+        self.bin.write_text(MOCK_1CV8T.replace("#!/usr/bin/env bash", "#!" + (shutil.which("bash") or "/bin/bash"), 1), encoding="utf-8")
         self.bin.chmod(0o755)
 
     def run_check(self, path=None, **extra):
@@ -81,7 +82,7 @@ class ValidationScriptTests(unittest.TestCase):
 
     def test_commercial_binary_is_rejected(self):
         commercial = self.root / "1cv8"
-        commercial.write_text(MOCK_1CV8T, encoding="utf-8")
+        commercial.write_text(MOCK_1CV8T.replace("#!/usr/bin/env bash", "#!" + (shutil.which("bash") or "/bin/bash"), 1), encoding="utf-8")
         commercial.chmod(0o755)
         result = self.run_check(ONEC_TRAINING_BIN=str(commercial))
         self.assertNotEqual(result.returncode, 0)
