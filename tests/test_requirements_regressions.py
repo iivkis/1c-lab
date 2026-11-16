@@ -32,6 +32,16 @@ class RequirementsRegressionTests(unittest.TestCase):
                 self.assertIn("ВыбранныеФайлы[0]", code)
                 self.assertIn("ТипФайлаТабличногоДокумента.XLSX", code)
 
+    def test_invoice_form_xml_uses_russian_standard_requisites(self):
+        for name, source in INVOICE_FORMS.items():
+            with self.subTest(document=name):
+                form_xml = source.parents[1] / "Form.xml"
+                xml = form_xml.read_text(encoding="utf-8")
+                self.assertIn("<DataPath>Объект.Номер</DataPath>", xml)
+                self.assertIn("<DataPath>Объект.Дата</DataPath>", xml)
+                self.assertNotIn("<DataPath>Объект.Number</DataPath>", xml)
+                self.assertNotIn("<DataPath>Объект.Date</DataPath>", xml)
+
     def test_print_uses_bsl_document_properties(self):
         for name, path in INVOICE_FORMS.items():
             with self.subTest(name=name):

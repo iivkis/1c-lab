@@ -49,6 +49,61 @@ def fail(message: str) -> None:
     raise ValueError(message)
 
 
+def verify_document_form_paths(src: Path, form_path: Path, form: ET.Element) -> None:
+    """Resolve DataPath fields against the document XML and form attributes."""
+    doc_name = form_path.relative_to(src).parts[1]
+    document_xml = src / "Documents" / (doc_name + ".xml")
+    metadata_root = ET.parse(document_xml).getroot()
+    doc = metadata_root.find(f"{MD}Document")
+    if doc is None:
+        fail(f"Document form has no parent document metadata: {form_path}")
+
+    children = doc.find(f"{MD}ChildObjects")
+    if children is None:
+        fail(f"Document has no attributes/table sections: {document_xml}")
+
+    doc_fields = {"Номер", "Дата", "Ссылка", "Проведен", "ПометкаУдаления"}
+    section_fields: dict[str, set[str]] = {}
+    for child in children:
+        kind = lname(child)
+        name = child.findtext(f"{MD}Properties/{MD}Name")
+        if not name:
+            continue
+        if kind == "Attribute":
+            doc_fields.add(name)
+        elif kind == "TabularSection":
+            doc_fields.add(name)
+            fields = {"НомерСтроки"}
+            for attribute in child.findall(f"{MD}ChildObjects/{MD}Attribute"):
+                field = attribute.findtext(f"{MD}Properties/{MD}Name")
+                if field:
+                    fields.add(field)
+            section_fields[name] = fields
+
+    form_attrs = set()
+    for element in form.iter():
+        if lname(element) == "Attributes":
+            form_attrs.update(
+                child.get("name") for child in element
+                if lname(child) == "Attribute" and child.get("name")
+            )
+
+    for element in form.iter():
+        if lname(element) != "DataPath" or not element.text:
+            continue
+        data_path = element.text.strip()
+        components = data_path.split(".")
+        if components[0] == "Объект":
+            if len(components) < 2 or components[1] not in doc_fields:
+                fail(f"Unrecognized document DataPath {data_path}: {form_path}")
+            if len(components) == 3 and components[2] not in section_fields.get(components[1], set()):
+                fail(f"Unrecognized tabular DataPath {data_path}: {form_path}")
+            if len(components) > 3 or (len(components) == 3 and components[1] not in section_fields):
+                fail(f"Unsupported document DataPath {data_path}: {form_path}")
+        elif components[0] not in form_attrs:
+            fail(f"Unknown form attribute in DataPath {data_path}: {form_path}")
+
+
 def check(src: Path) -> int:
     source = (src / "Configuration.xml")
     if not source.is_file():
@@ -102,6 +157,8 @@ def check(src: Path) -> int:
 
         if path == source:
             continue
+        if is_form_layout and rel.parts[0] == "Documents":
+            verify_document_form_paths(src, path, root)
         if is_form_layout:
             source_module = path.parent / "Form" / "Module.bsl"
             if not source_module.is_file():
