@@ -22,6 +22,7 @@ while [[ $# -gt 0 ]]; do
     /CheckConfig) stage=check-config; shift ;;
     /IBCheckAndRepair) stage=check-infobase; shift ;;
     /DumpCfg) stage=export-config; config="$2"; shift 2 ;;
+    /DumpDBCfg) stage=export-db-config; config="$2"; shift 2 ;;
     /Out) log="$2"; shift 2 ;;
     *) shift ;;
   esac
@@ -34,7 +35,7 @@ if [[ "$stage" == restore ]]; then
   mkdir -p "$ib"
   printf 'mock database\n' > "$ib/1Cv8.1CD"
 fi
-if [[ "$stage" == export-config ]]; then
+if [[ "$stage" == export-config || "$stage" == export-db-config ]]; then
   printf 'mock cfg\n' > "$config"
 fi
 printf 'ok %s\n' "$stage" > "$log"
@@ -89,7 +90,7 @@ class ValidationScriptTests(unittest.TestCase):
         self.assertIn("Only the educational", result.stderr)
 
     def test_each_platform_stage_failure_is_detected(self):
-        for stage in ("restore", "check-config", "check-infobase", "export-config"):
+        for stage in ("restore", "check-config", "check-infobase", "export-config", "export-db-config"):
             with self.subTest(stage=stage):
                 result = self.run_check(MOCK_FAIL_STAGE=stage)
                 self.assertNotEqual(result.returncode, 0)
