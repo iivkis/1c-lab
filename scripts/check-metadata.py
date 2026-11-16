@@ -74,8 +74,10 @@ def check(src: Path) -> int:
     unique_ids: set[str] = set()
     for path in paths:
         root = ET.parse(path).getroot()
-        if lname(root) != "MetaDataObject":
-            fail(f"{path} is not an XML metadata object")
+        rel = path.relative_to(src)
+        is_form_layout = len(rel.parts) == 6 and rel.parts[0] == "DataProcessors" and rel.parts[2:] == ("Forms", "Форма", "Ext", "Form.xml")
+        if lname(root) != ("Form" if is_form_layout else "MetaDataObject"):
+            fail(f"{path} has an unexpected XML root")
         for obj in root.iter():
             value = obj.attrib.get("uuid")
             if value:
@@ -85,7 +87,15 @@ def check(src: Path) -> int:
 
         if path == source:
             continue
-        rel = path.relative_to(src)
+        if len(rel.parts) > 2:
+            if rel.parts[0] != "DataProcessors" or rel.parts[1] not in listed["DataProcessor"]:
+                fail(f"Unregistered nested metadata file: {rel}")
+            if len(rel.parts) == 4 and rel.parts[2:] == ("Forms", "Форма.xml"):
+                if root.find(f"{MD}Form") is None:
+                    fail(f"Missing form object in {rel}")
+            elif not is_form_layout:
+                fail(f"Unexpected nested XML file: {rel}")
+            continue
         if len(rel.parts) != 2 or rel.parts[0] not in FOLDERS.values():
             fail(f"Unexpected metadata XML path: {rel}")
         kind = next(k for k, folder in FOLDERS.items() if folder == rel.parts[0])
@@ -102,6 +112,11 @@ def check(src: Path) -> int:
                     ref = field.text.split(".", 1)[1]
                     if ref not in listed["Catalog"]:
                         fail(f"Unknown catalog reference {ref} in {path}")
+
+        if kind == "DataProcessor":
+            forms = metadata.find(f"{MD}ChildObjects")
+            if forms is None or not any(e.text == "Форма" for e in forms):
+                fail(f"DataProcessor has no UI form: {path}")
 
         if kind == "Document":
             record_nodes = metadata.find(f"{MD}Properties/{MD}RegisterRecords")
