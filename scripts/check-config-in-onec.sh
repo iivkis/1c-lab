@@ -13,6 +13,7 @@ if [[ -z "$onec_bin" ]]; then onec_bin="$(command -v 1cv8t || true)"; fi
 [[ -x "$onec_bin" ]] || die "Not executable: $onec_bin"
 
 workdir="$(mktemp -d "${TMPDIR:-/tmp}/onec-config.XXXXXXXX")"
+trap 'rm -rf -- "$workdir"' EXIT
 keep_db=false
 if [[ $# -eq 0 ]]; then
   db_dir="$workdir/ib"
@@ -24,7 +25,6 @@ else
   die "Usage: $0 [--keep-db PATH_TO_NEW_INFOBASE]"
 fi
 mkdir -p "$db_dir" "$workdir/logs"
-trap 'rm -rf -- "$workdir"' EXIT
 
 runner=("$onec_bin")
 if [[ -z "${DISPLAY:-}" ]]; then
